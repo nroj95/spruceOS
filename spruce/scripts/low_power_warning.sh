@@ -108,7 +108,9 @@ while true; do
     # disable script if turned off in spruce.cfg
     [ "$PERCENT" = "Off" ] && sleep $SLEEP && continue
 
-    if [ "$CAPACITY" -le "$PERCENT" ]; then
+    CHARGING=$(device_get_charging_status)
+
+    if [ "$CAPACITY" -le "$PERCENT" ] && [ "$CHARGING" != "Charging" ]; then
         vibrate_count=0
         flag_added=false
         while [ "$CAPACITY" -le "$PERCENT" ]; do
