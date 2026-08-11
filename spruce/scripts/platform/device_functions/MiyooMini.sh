@@ -70,7 +70,7 @@ device_init() {
 }
 
 vibrate() {
-    duration=0.5
+    duration=500
 
     # Parse arguments in any order
     while [ $# -gt 0 ]; do
@@ -86,8 +86,10 @@ vibrate() {
         shift
     done
 
+    duration_seconds=$(printf '%d.%03d' "$((duration / 1000))" "$((duration % 1000))")
+
     echo out > /sys/class/gpio/gpio48/direction
-    sleep "$duration"
+    sleep "$duration_seconds"
     echo 1 > /sys/class/gpio/gpio48/value
 }
 
