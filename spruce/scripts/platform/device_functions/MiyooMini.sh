@@ -368,6 +368,58 @@ get_miyoo_mini_variant() {
     fi
 }
 
+device_restore_offline_time() {
+    current_time="$(date +%s 2>/dev/null || echo 0)"
+
+    # A valid boot clock means RTC or another clock source restored the time.
+    if [ "$current_time" -gt 15 ]; then
+        log_message "Offline time restore skipped: valid boot clock detected"
+        return 0
+    fi
+
+    time_file="/mnt/SDCARD/Saves/miyoo-offline-time.txt"
+    if [ ! -f "$time_file" ]; then
+        log_message "Offline time restore skipped: no saved time found"
+        return 0
+    fi
+
+    saved_time="$(cat "$time_file" 2>/dev/null)"
+
+    case "$saved_time" in
+        ''|*[!0-9]*)
+            log_message "Offline time restore skipped: invalid saved time"
+            return 0
+            ;;
+    esac
+
+    config_file="/mnt/SDCARD/Saves/mini-flip-system.json"
+    hours="$(jq -r '.offlineTimeAdjustmentHours // 4' "$config_file" 2>/dev/null)"
+
+    case "$hours" in
+        ''|*[!0-9]*)
+            hours=4
+            ;;
+    esac
+
+    [ "$hours" -gt 24 ] && hours=24
+
+    restored_time=$((saved_time + hours * 3600))
+    date +%s -s "@$restored_time"
+
+    log_message "Offline time restored: ${saved_time} -> ${restored_time} (+${hours}h)"
+}
+
+device_prepare_for_poweroff() {
+    saved_time="$(date +%s)"
+
+    printf '%s\n' "$saved_time" \
+        > /mnt/SDCARD/Saves/miyoo-offline-time.txt
+
+    sync
+
+    log_message "Offline time saved: ${saved_time}"
+}
+
 run_poweroff_cmd() {
     if is_mini_og; then
         reboot # OG Mini hangs if you use the poweroff command

@@ -122,6 +122,9 @@ class MiyooMiniCommon(MiyooDevice):
             from display.display import Display
             Display.volume_changed(self.mainui_volume * 5)
 
+    def supports_offline_time_adjustment(self):
+        return True
+
     def startup_init(self, include_wifi=True):
         if(self.is_wifi_enabled()):
             self.start_wifi_services(foreground_call=False)

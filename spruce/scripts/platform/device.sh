@@ -308,6 +308,10 @@ save_volume_to_config_file() {
     sed -i "s/\"vol\":\s*\([0-9]*\)/\"vol\": $VOLUME_LV/" "$SYSTEM_JSON"
 }
 
+device_restore_offline_time() {
+    :
+}
+
 device_prepare_for_poweroff() {
     log_message "Missing device_prepare_for_poweroff function" -v
 }

@@ -38,6 +38,28 @@ class TimeSettingsMenu(settings_menu.SettingsMenu):
         if (ControllerInput.A == input):
             SetTimeMenu().show_menu()
 
+    def change_offline_time_adjustment(self, input):
+        system_config = Device.get_device().get_system_config()
+        hours = system_config.get_offline_time_adjustment_hours()
+
+        if input == ControllerInput.DPAD_LEFT:
+            hours = (hours - 1) % 25
+        elif input in (ControllerInput.DPAD_RIGHT, ControllerInput.A):
+            hours = (hours + 1) % 25
+        else:
+            return
+
+        system_config.set_offline_time_adjustment_hours(hours)
+
+    def format_offline_time_adjustment(self):
+        hours = (
+            Device.get_device()
+            .get_system_config()
+            .get_offline_time_adjustment_hours()
+        )
+
+        return "Off" if hours == 0 else f"+{hours}h"
+
     def get_current_timezone(self):
         system_config = Device.get_device().get_system_config()
         if hasattr(system_config, "get_timezone"):
@@ -60,6 +82,23 @@ class TimeSettingsMenu(settings_menu.SettingsMenu):
                 value=self.set_time
             )
         )
+
+        system_config = Device.get_device().get_system_config()
+
+        if Device.get_device().supports_offline_time_adjustment():
+            option_list.append(
+                GridOrListEntry(
+                    primary_text="Offline time adjustment",
+                    value_text="<    " +
+                    self.format_offline_time_adjustment() +
+                    "    >",
+                    image_path=None,
+                    image_path_selected=None,
+                    description=None,
+                    icon=None,
+                    value=self.change_offline_time_adjustment
+                )
+            )
 
         if(Device.get_device().supports_timezone_setting()):
             option_list.append(

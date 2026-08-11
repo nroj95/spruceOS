@@ -524,6 +524,9 @@ class DeviceCommon(AbstractDevice):
         if self.is_filesystem_read_only("/mnt/SDCARD"):
             Display.display_message(Language.label("sdcardReadOnlyWarning", "Warning: /mnt/SDCARD is read-only. Please check your SD card."), duration_ms=10000)
 
+    def supports_offline_time_adjustment(self):
+        return False
+
     def sync_hw_clock(self):
         #Is this different per device? Should be right for the tina linux handhelds at least
         try:

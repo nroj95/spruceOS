@@ -19,6 +19,8 @@
 # Source the helper functions
 . /mnt/SDCARD/spruce/scripts/helperFunctions.sh
 
+device_restore_offline_time
+
 while [ 1 ]; do
     log_message "Starting new loop of principal.sh"
     set_smart
