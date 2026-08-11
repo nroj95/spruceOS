@@ -371,13 +371,17 @@ get_miyoo_mini_variant() {
 }
 
 device_restore_offline_time() {
-    current_time="$(date +%s 2>/dev/null || echo 0)"
+    # Prefer the hardware rtc when available.
+    if hwclock -s -u 2>/dev/null; then
+        current_time="$(date +%s 2>/dev/null || echo 0)"
 
-    # A valid boot clock means RTC or another clock source restored the time.
-    if [ "$current_time" -gt 15 ]; then
-        log_message "Offline time restore skipped: valid boot clock detected"
-        return 0
+        if [ "$current_time" -gt 15 ]; then
+            log_message "RTC time restored: ${current_time}"
+            return 0
+        fi
     fi
+
+    log_message "Hardware RTC restore failed, trying offline time restore"
 
     time_file="/mnt/SDCARD/Saves/miyoo-offline-time.txt"
     if [ ! -f "$time_file" ]; then
