@@ -110,29 +110,47 @@ take_screenshot_bg() {
 
 # Setup global screenshot shortcut
 SS_SHORTCUT="$(get_config_value '.menuOptions."System Settings".globalScreenshotShortcut.selected' "L2+R2+Y")"
-SS_B1=$B_L2
-SS_B2=$B_R2
+
+SS_B1="NULL"
+SS_B2="NULL"
+SS_B3="NULL"
+SS_BUTTON_COUNT=0
 
 case "$SS_SHORTCUT" in
     "L2+R2+Y")
+        SS_B1=$B_L2
+        SS_B2=$B_R2
         SS_B3=$B_Y
+        SS_BUTTON_COUNT=3
         ;;
     "L2+R2+X")
+        SS_B1=$B_L2
+        SS_B2=$B_R2
         SS_B3=$B_X
+        SS_BUTTON_COUNT=3
         ;;
     "L2+R2+DOWN")
+        SS_B1=$B_L2
+        SS_B2=$B_R2
         SS_B3=$B_DOWN
+        SS_BUTTON_COUNT=3
         ;;
-    "Off")
-        SS_B1="NULL"
-        SS_B2="NULL"
-        SS_B3="NULL"
+    "MENU+SELECT")
+        SS_B1=$B_MENU
+        SS_B2=$B_SELECT
+        SS_BUTTON_COUNT=2
         ;;
 esac
 
 SS_B1_DOWN=false
 SS_B2_DOWN=false
 SS_B3_DOWN=false
+
+screenshot_shortcut_pressed() {
+    [ "$SS_B1_DOWN" = true ] &&
+    [ "$SS_B2_DOWN" = true ] &&
+    { [ "$SS_BUTTON_COUNT" -eq 2 ] || [ "$SS_B3_DOWN" = true ]; }
+}
 
 # scan all button input
 EVENTS="$EVENT_PATH_READ_INPUTS_SPRUCE"
@@ -159,7 +177,7 @@ getevent $EVENTS | while read line; do
         ;;
         *"key $SS_B1 1"*) # Screenshot key 1 down
             SS_B1_DOWN=true
-            if [ "$SS_B2_DOWN" = true ] && [ "$SS_B3_DOWN" = true ] ; then
+            if screenshot_shortcut_pressed; then
                 take_screenshot_bg &
             fi
         ;;
@@ -168,7 +186,7 @@ getevent $EVENTS | while read line; do
         ;;
         *"key $SS_B2 1"*) # Screenshot key 2 down
             SS_B2_DOWN=true
-            if [ "$SS_B1_DOWN" = true ] && [ "$SS_B3_DOWN" = true ] ; then
+            if screenshot_shortcut_pressed; then
                 take_screenshot_bg &
             fi
         ;;
@@ -177,7 +195,7 @@ getevent $EVENTS | while read line; do
         ;;
         *"key $SS_B3 1"*) # Screenshot key 3 down
             SS_B3_DOWN=true
-            if [ "$SS_B1_DOWN" = true ] && [ "$SS_B2_DOWN" = true ] ; then
+            if screenshot_shortcut_pressed; then
                 take_screenshot_bg &
             fi
         ;;
