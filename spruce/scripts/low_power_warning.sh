@@ -107,10 +107,10 @@ while true; do
     # disable script if turned off in spruce.cfg
     [ "$PERCENT" = "Off" ] && sleep $SLEEP && continue
 
-    if [ "$CAPACITY" -le "$PERCENT" ]; then
+    if [ "$CAPACITY" -le "$PERCENT" ] && [ "$(device_get_charging_status)" != "Charging" ]; then
         vibrate_count=0
         flag_added=false
-        while [ "$CAPACITY" -le "$PERCENT" ]; do
+        while [ "$CAPACITY" -le "$PERCENT" ] && [ "$(device_get_charging_status)" != "Charging" ]; do
 
             if [ "$vibrate_count" -lt 2 ]; then
                 morse_code_sos "true" "." "." "." "-" "-" "-" "." "." "."
