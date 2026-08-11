@@ -15,8 +15,12 @@ class TimeSettingsMenu(settings_menu.SettingsMenu):
         super().__init__()
 
     def set_timezone(self, input):
-        if (ControllerInput.A == input):
+        if ControllerInput.A == input:
             Device.get_device().prompt_timezone_update()
+        elif ControllerInput.DPAD_LEFT == input:
+            Device.get_device().cycle_timezone(-1)
+        elif ControllerInput.DPAD_RIGHT == input:
+            Device.get_device().cycle_timezone(1)
 
     def change_24_hour_clock_setting(self, input):
         if (ControllerInput.DPAD_LEFT == input or ControllerInput.DPAD_RIGHT == input or ControllerInput.A == input):

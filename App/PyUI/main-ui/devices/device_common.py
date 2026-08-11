@@ -394,6 +394,9 @@ class DeviceCommon(AbstractDevice):
         #Unsupported by default
         pass
 
+    def cycle_timezone(self, direction):
+        pass
+
     def supports_caching_rom_lists(self):
         return True
 

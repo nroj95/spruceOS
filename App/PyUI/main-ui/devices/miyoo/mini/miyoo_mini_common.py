@@ -16,12 +16,14 @@ from controller.key_watcher import KeyWatcher
 from controller.key_watcher_controller_dataclasses import InputResult, KeyEvent
 from devices.miyoo.mini.miyoo_mini_flip_shared_memory_writer import MiyooMiniFlipSharedMemoryWriter
 from devices.miyoo.mini.miyoo_mini_flip_specific_model_variables import MiyooMiniSpecificModelVariables
+from devices.miyoo.mini.miyoo_timezones import MIYOO_TIMEZONES
 from devices.miyoo.miyoo_device import MiyooDevice
 from devices.miyoo.miyoo_games_file_parser import MiyooGamesFileParser
 from devices.miyoo.device_user_config import DeviceUserConfig
 from devices.miyoo_trim_common import MiyooTrimCommon
 from devices.utils.file_watcher import FileWatcher
 from devices.utils.process_runner import ProcessRunner
+from menus.settings.timezone_menu import TimezoneMenu
 from menus.games.utils.rom_info import RomInfo
 from utils import throttle
 from utils.config_copier import ConfigCopier
@@ -49,6 +51,21 @@ class MiyooMiniCommon(MiyooDevice):
         self.controller_interface = self.build_controller_interface()
 
         self._load_system_config("/mnt/SDCARD/Saves/mini-flip-system.json", Path(__file__).resolve().parent  / 'mini-flip-system.json')
+        timezone = self.system_config.get("timezone")
+
+        legacy_timezones = {
+            "Europe/Oslo": "Central Europe",
+        }
+
+        updated_timezone = legacy_timezones.get(timezone, timezone)
+
+        if updated_timezone not in MIYOO_TIMEZONES:
+            updated_timezone = "UTC"
+
+        if updated_timezone != timezone:
+            self.system_config.set_timezone(updated_timezone)
+
+        self.apply_timezone(updated_timezone)
         
         if(main_ui_mode):
             self.miyoo_mini_flip_shared_memory_writer = MiyooMiniFlipSharedMemoryWriter()
@@ -531,13 +548,43 @@ class MiyooMiniCommon(MiyooDevice):
         return True
 
     def prompt_timezone_update(self):
-        #No timezone update for miyoo mini
-        pass
+        timezone_menu = TimezoneMenu()
+        timezone = timezone_menu.ask_user_for_timezone(
+            list(MIYOO_TIMEZONES.keys())
+        )
+
+        if timezone is not None:
+            self.system_config.set_timezone(timezone)
+            self.apply_timezone(timezone)
 
     def apply_timezone(self, timezone):
-        ProcessRunner.run(["rm", "-f", "/tmp/localtime"])
-        ProcessRunner.run(["ln", "-s", "/mnt/SDCARD/miyoo285/zoneinfo/"+timezone ,"/tmp/localtime"])
-    
+        timezone_rule = MIYOO_TIMEZONES.get(timezone)
+
+        if timezone_rule is None:
+            PyUiLogger.get_logger().warning(
+                f"Unsupported Miyoo Mini timezone: {timezone}"
+            )
+            return
+
+        os.environ["TZ"] = timezone_rule
+        time.tzset()
+
+    def cycle_timezone(self, direction):
+        timezones = list(MIYOO_TIMEZONES.keys())
+        current_timezone = self.system_config.get_timezone()
+
+        try:
+            current_index = timezones.index(current_timezone)
+        except ValueError:
+            current_index = 0
+
+        next_timezone = timezones[
+            (current_index + direction) % len(timezones)
+        ]
+
+        self.system_config.set_timezone(next_timezone)
+        self.apply_timezone(next_timezone)
+
     def get_fw_version(self):
         try:
             # Run fw_printenv and capture output
