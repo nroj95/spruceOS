@@ -8,6 +8,7 @@ dot_duration=0.2
 dash_duration=0.6
 intra_char_gap=0.2
 inter_word_gap=1.4
+sos_repeat_gap=10
 
 LOG_DIR="/mnt/SDCARD/Saves/spruce"
 LOG_FILE="${LOG_DIR}/battery_log.txt"
@@ -115,6 +116,10 @@ while true; do
             if [ "$vibrate_count" -lt 2 ]; then
                 morse_code_sos "true" "." "." "." "-" "-" "-" "." "." "."
                 vibrate_count=$((vibrate_count + 1))
+
+                if [ "$vibrate_count" -lt 2 ]; then
+                    sleep "$sos_repeat_gap"
+                fi
             else
                 if [ "$flag_added" = false ]; then
                     if flag_check "in_menu"; then
