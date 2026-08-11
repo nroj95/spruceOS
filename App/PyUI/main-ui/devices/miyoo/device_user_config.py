@@ -304,6 +304,13 @@ class DeviceUserConfig:
         self.config["timezone"] = value
         self.save_config()
 
+    def get_offline_time_adjustment_hours(self):
+        return self.config.get("offlineTimeAdjustmentHours", 4)
+
+    def set_offline_time_adjustment_hours(self, value):
+        self.config["offlineTimeAdjustmentHours"] = value
+        self.save_config()
+
     def play_button_press_sound(self):
         return self.config.get("playButtonPressSound", True)
 
