@@ -16,12 +16,15 @@ class ScreenSaver:
     # Stored in the theme as bgImage to select the random box art mode
     BOXART_SENTINEL = "__boxart__"
 
+    WIDGET_REFRESH_INTERVAL = 60
+
     _animation_path = None
     _animation = None
     _animation_frame = 0
     _animation_next_time = 0
     _boxart_current = None
     _boxart_next_time = 0
+    _widget_next_time = 0
 
     @classmethod
     def render(cls):
@@ -38,6 +41,7 @@ class ScreenSaver:
                 cls._render_widget(widget, screen_w, screen_h, Display)
 
             cls._present_without_bars(Display)
+            cls._widget_next_time = time.time() + cls.WIDGET_REFRESH_INTERVAL
         except Exception as e:
             PyUiLogger.get_logger().error(f"ScreenSaver render error: {e}")
 
@@ -47,6 +51,8 @@ class ScreenSaver:
         if cls._animation_path and now >= cls._animation_next_time:
             cls.render()
         elif cls._boxart_next_time and now >= cls._boxart_next_time:
+            cls.render()
+        elif not cls._animation_path and now >= cls._widget_next_time:
             cls.render()
 
     @classmethod
