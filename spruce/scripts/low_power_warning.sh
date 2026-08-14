@@ -15,6 +15,8 @@ LOG_INTERVAL=120 # 2 minutes in seconds
 LAST_LOG=0
 MAX_LINES=1000
 
+LAST_CHARGE_LIMIT=""
+
 morse_code_sos() {
     local do_vibrate=$1
     shift
@@ -80,6 +82,54 @@ hard_shutdown() {
     fi
 }
 
+update_charge_limit() {
+    local capacity="$1"
+    local limit="$2"
+    local desired=""
+    local resume_at
+
+    case "$limit" in
+    "Off")
+        desired="enabled"
+        ;;
+    "80" | "90")
+        case "$capacity" in
+        '' | *[!0-9]*)
+            return 0
+            ;;
+        esac
+
+        resume_at=$((limit - 5))
+
+        if [ "$limit" != "$LAST_CHARGE_LIMIT" ]; then
+            if [ "$capacity" -ge "$limit" ]; then
+                desired="disabled"
+            else
+                desired="enabled"
+            fi
+        elif [ "$capacity" -ge "$limit" ]; then
+            desired="disabled"
+        elif [ "$capacity" -le "$resume_at" ]; then
+            desired="enabled"
+        fi
+        ;;
+    *)
+        limit="Off"
+        desired="enabled"
+        ;;
+    esac
+
+    LAST_CHARGE_LIMIT="$limit"
+
+    [ -z "$desired" ] && return 0
+
+    if [ "$desired" = "enabled" ]; then
+        device_set_charging_enabled "true"
+    else
+        device_set_charging_enabled "false"
+    fi
+}
+
 # Log boot entry
 # init_battery_log
 LAST_LOG=$(date +%s)
@@ -88,6 +138,9 @@ while true; do
     CAPACITY=$(device_get_battery_percent)
     PERCENT="$(get_config_value '.menuOptions."Battery Settings".lowPowerWarningPercent.selected' "4")"
     LED_MODE="$(get_config_value '.menuOptions."Battery Settings".ledMode.selected' "Always off")"
+    CHARGE_LIMIT="$(get_config_value '.menuOptions."Battery Settings".chargeLimit.selected' "Off")"
+
+    update_charge_limit "$CAPACITY" "$CHARGE_LIMIT"
     
     # Add battery logging
     CURRENT_TIME=$(date +%s)

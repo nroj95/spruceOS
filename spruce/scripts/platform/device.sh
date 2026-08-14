@@ -250,6 +250,10 @@ device_get_battery_percent() {
     log_message "Missing device_get_battery_percent function"
 }
 
+device_set_charging_enabled() {
+    return 0
+}
+
 device_enter_sleep() {
     log_message "Missing device_enter_sleep"
 }

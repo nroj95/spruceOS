@@ -49,6 +49,17 @@
                 ],
                 "selected": "4"
             },
+            "chargeLimit": {
+                "devices": ["MIYOO_MINI_PLUS"],
+                "display": "Charge limit",
+                "description": "limits charging while spruce is running",
+                "options": [
+                    "Off",
+                    "80",
+                    "90"
+                ],
+                "selected": "Off"
+            },
             "shutdownFromSleep": {
                 "display": "Shutdown after sleeping",
                 "description": "off sleeps indefinitely",

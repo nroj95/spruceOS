@@ -259,6 +259,27 @@ device_get_battery_percent() {
     fi
 }
 
+device_set_charging_enabled() {
+    local action
+
+    [ "$(get_miyoo_mini_variant)" = "MIYOO_MINI_PLUS" ] || return 0
+
+    case "$1" in
+    true | 1 | enable | enabled)
+        action="enable"
+        ;;
+    false | 0 | disable | disabled)
+        action="disable"
+        ;;
+    *)
+        return 1
+        ;;
+    esac
+
+    /mnt/SDCARD/spruce/bin/python/bin/python3.10 \
+        /mnt/SDCARD/spruce/miyoomini/bin/axp_charge.py "$action"
+}
+
 EMU_LIST="retroarch scummvm pico8_dyn drastic OpenBOR OpenBOR_mod OpenBOR_new ffplay MainUI"
 BRIGHTNESS_FILE="/sys/devices/soc0/soc/1f003400.pwm/pwm/pwmchip0/pwm0/duty_cycle"
 SCREEN_BLANK_FILE="/proc/mi_modules/fb/mi_fb0"
@@ -366,6 +387,10 @@ get_miyoo_mini_variant() {
             echo "MIYOO_MINI_PLUS"
         fi
     fi
+}
+
+device_prepare_for_poweroff() {
+    device_set_charging_enabled "true"
 }
 
 run_poweroff_cmd() {
